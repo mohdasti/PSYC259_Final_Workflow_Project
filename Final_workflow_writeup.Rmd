@@ -196,4 +196,15 @@ ggplot(df_GMean, aes(x = Condition, y = GeometricMean, color = Condition)) +
 
 # III. Sharing/Reproduciblity
 
-As described in my last assignment, I had posted the raw data in the [Open Science Framework](https://osf.io/45qx8/). Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my [GitHub Repository](https://github.com/mohdasti/Queens-Thesis).
+As described in my last assignment, I had posted the origina; raw data in the [Open Science Framework](https://osf.io/45qx8/). Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my [GitHub Repository](https://github.com/mohdasti/Queens-Thesis). You can also access the entire dissertation in `thesisaltogether.Rmd`. 
+
+The other issue that I briefly mentioned in my workflow critique was the usage of `dev` packages and how they might reduce the reproducibility. To avoid that, the `groundhog` package can bring a specific version of a package on a certain date. 
+Below is a sample code chunk of groundhog—in case I needed to retrieve an older version of a package.
+
+```{r, include=TRUE, cache=TRUE}
+# install.packages("groundhog")
+# library(groundhog)
+# groundhog.library("psycho","2018-12-26")
+```
+
+
