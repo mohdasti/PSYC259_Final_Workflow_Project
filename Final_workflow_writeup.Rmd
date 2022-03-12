@@ -1,0 +1,15 @@
+---
+title: "Final Workflow Assignment"
+author: "Mohammad Dastgheib"
+date: "3/12/2022"
+output:
+    html_document:
+        toc: true
+        toc_float: true
+---
+
+This project is based on my master's dissertation [script](https://github.com/mohdasti/PSYC259_Final_Workflow_Project/blob/main/thesisaltogether.Rmd). The original work is in `.Rmd` format. Here, as a follow-up to my previous *self-critique* assignment, try to improve my code, as well as illustrating some parts of my code that follows the goals of this assignment (efficiency, fidelity, sharing/reproducibility)
+
+Before starting the assignment, I need to briefly describe the "original files":
+`thesisaltogether.Rmd` is the main file in my original work. `references.bib` and `Rreferences.bib` are bibtex formats for manging my references. `preamble-latex.tex` is an addendum to my YAML section to address some technical issues with the formatting of figures, etc. `Appendix`, `Figures`, and `Raw data` contain several required files to execute the `thesisaltogether.Rmd`. However, the original Raw Data of my work is already posted in my GitHub repo.
+
