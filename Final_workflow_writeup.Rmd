@@ -20,7 +20,7 @@ Before starting the assignment, I need to briefly describe the "original files":
 
 In the original work, I inserted this function to reduce the amount of time re-installing/loading the packages.
 
-```{}
+```{r, message=FALSE}
 required_packages <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg)) 
@@ -28,7 +28,7 @@ required_packages <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-packages <- c("rio","readxl", "tidyverse","devtools","dplyr","ggplot2","magrittr","Hmisc","psycho","lmerTest","rstanarm","jtools","bayesplot","corrplot")
+packages <- c("rio","readxl", "tidyverse","devtools","dplyr","ggplot2","magrittr","Hmisc","psycho","lmerTest","rstanarm","jtools","bayesplot","corrplot", "tidyverse")
 required_packages(packages)
 ```
 
@@ -99,3 +99,101 @@ Data <- create_data_object(
 
 ```
 
+
+# II. Fidelity
+
+In terms of fidelity and implementing procedures that could reduce the additional manual copy/paste of different version of the data, the code above (using Google Sheets) can increase the fidelity of my work. 
+
+Moreover, I went over my code and found that I used hard-coding to remove some observations.
+
+```{r, include=TRUE, message=FALSE, cache=TRUE}
+#after importing the data from GitHub and renaming it RAW
+RAW <- RAW_data
+#creating subsets of data 
+MED <- RAW[which(RAW$Condition == 'MED'), ]
+WAKE <- RAW[which(RAW$Condition == 'WAKE'), ]
+NAP <- RAW[which(RAW$Condition == 'NAP'), ]
+NAP_SWS <- RAW[which(RAW$percentSWS != 0), ]
+NAP_noSWS <- RAW[which(RAW$percentSWS == 0), ]
+
+# Calculating Geometric Mean and Difference of Medians (two main measures of performance for the declarative and non-declarative memory)
+# True Positive rate
+RAW$TPR <-
+  RAW$`Hit ratio` / (RAW$`Hit ratio` + RAW$`False Alarm ratio`)
+#True Negative rate
+RAW$TNR <-
+  RAW$`Correct Rejection ratio` / (RAW$`Correct Rejection ratio` + RAW$`Miss ratio`)
+#calculating the G-Mean
+RAW$GMean <- 
+  sqrt(RAW$TPR * RAW$TNR)
+
+#Excluding outliers - creating modified datasets
+## any data points that is beyond ±2 SD - these exculusion are specific to each task (one participant may be excluded from declarative task (for being over ±2 SD), but its score for non-declarative memory may be used)
+## those who failed to meet the general criteria of their treatment condition (i.e. falling asleep in MED)
+## those who their number of arousals were beyond ±2 SD 
+
+
+#MED$GMean[abs(scale(MED$GMean)) > 2]
+#WAKE$GMean[abs(scale(WAKE$GMean)) > 2]
+#NAP_SWS$GMean[abs(scale(NAP_SWS$GMean)) > 2]
+#NAP_noSWS$GMean[abs(scale(NAP_noSWS$GMean)) > 2]
+
+#creating two separate datasets based on the memory task
+RAW_declr <- RAW[-c(34,39,25,13,46),]
+
+```
+
+So, here I would like to avoid hard-coding:
+
+```{r, include=TRUE, message=FALSE, cache=TRUE}
+
+MED_dplyr <- RAW %>% filter(Condition=='MED') %>% filter(abs(scale(GMean)) < 2)
+WAKE_dplyr <- RAW %>% filter(Condition=='WAKE') %>% filter(abs(scale(GMean)) < 2)
+NAP_SWS_dplyr <- RAW %>% filter(Condition=='NAP') %>% filter(percentSWS != 0) %>% filter(abs(scale(GMean)) < 2)
+NAP_noSWS_dplyr <- RAW %>% filter(Condition=='NAP') %>% filter(percentSWS == 0) %>% filter(abs(scale(GMean)) < 2)
+
+```
+
+
+Here, using ggplot package, I will plot the overall distribution
+
+``` {r, include = TRUE, cache=TRUE, message=FALSE}
+#overall pattern of distribution
+NAP_dplyr <- rbind(NAP_SWS_dplyr, NAP_noSWS_dplyr)
+NAP_GMean <-
+  data.frame(Condition = "NAP", GeometricMean = NAP_dplyr$GMean)
+MED_GMean <-
+  data.frame(Condition = "MED", GeometricMean = MED_dplyr$GMean)
+WAKE_GMean <-
+  data.frame(Condition = "WAKE", GeometricMean = WAKE_dplyr$GMean)
+df_GMean <- rbind(NAP_GMean, MED_GMean, WAKE_GMean)
+```
+
+``` {r, echo = TRUE, cache=TRUE, fig.cap = "Overall distribution of Geometric Mean scores across the three experimental conditions (NAP; MED, meditation; WAKE).  Error bars reflect standard deviation. \\label{decldist}", message=FALSE, warning=FALSE}
+
+
+ggplot(df_GMean, aes(x = Condition, y = GeometricMean, color = Condition)) +
+  geom_point(size = 4,
+             alpha = 0.7,
+             position = position_jitter(w = 0.1, h = 0)) +
+  stat_summary(
+    fun.y = mean,
+    geom = "point",
+    shape = 23,
+    color = "black",
+    aes(fill = Condition),
+    size = 4
+  ) +
+  stat_summary(
+    fun.ymin = function(x)
+      (mean(x) - sd(x)
+      ),
+    fun.ymax=function(x)(mean(x)+sd(x)),
+    geom="errorbar", width=0.1) + xlab("Condition") + ylab("Geometric Mean") +
+    theme_apa()
+```
+
+
+# III. Sharing/Reproduciblity
+
+As described in my last assignment, I had posted the raw data in the [Open Science Framework](https://osf.io/45qx8/). Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my [GitHub Repository](https://github.com/mohdasti/Queens-Thesis).
