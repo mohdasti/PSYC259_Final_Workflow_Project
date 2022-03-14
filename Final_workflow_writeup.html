@@ -253,6 +253,8 @@ div.tocify {
 <h1>I. Efficiency</h1>
 <div id="automation" class="section level2">
 <h2>Automation</h2>
+<div id="a-function-to-optimize-the-package-installation" class="section level3">
+<h3>a function to optimize the package installation</h3>
 <p>In the original work, I inserted this function to reduce the amount of time re-installing/loading the packages.</p>
 <pre class="r"><code>required_packages &lt;- function(pkg){
   new.pkg &lt;- pkg[!(pkg %in% installed.packages()[, &quot;Package&quot;])]
@@ -261,23 +263,25 @@ div.tocify {
   sapply(pkg, require, character.only = TRUE)
 }
 
-packages &lt;- c(&quot;rio&quot;,&quot;readxl&quot;, &quot;tidyverse&quot;,&quot;devtools&quot;,&quot;dplyr&quot;,&quot;ggplot2&quot;,&quot;magrittr&quot;,&quot;Hmisc&quot;,&quot;psycho&quot;,&quot;lmerTest&quot;,&quot;rstanarm&quot;,&quot;jtools&quot;,&quot;bayesplot&quot;,&quot;corrplot&quot;, &quot;tidyverse&quot;)
+packages &lt;- c(&quot;rio&quot;,&quot;readxl&quot;, &quot;tidyverse&quot;,&quot;devtools&quot;,&quot;dplyr&quot;,&quot;ggplot2&quot;,&quot;magrittr&quot;,&quot;Hmisc&quot;,&quot;psycho&quot;,&quot;lmerTest&quot;,&quot;rstanarm&quot;,&quot;jtools&quot;,&quot;bayesplot&quot;,&quot;corrplot&quot;)
 required_packages(packages)</code></pre>
 <pre><code>##       rio    readxl tidyverse  devtools     dplyr   ggplot2  magrittr     Hmisc 
 ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
-##    psycho  lmerTest  rstanarm    jtools bayesplot  corrplot tidyverse 
-##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE</code></pre>
-<p>After examining my initial work, I noticed that I had uploaded my “Raw Data” as an Excel spreadsheet. This means that unless the project is finished, every time I wanted to take a look at my data or running some EDA, I needed to replace the existing Excel file with a new one. This process can be improved if I insert the original works into a Google sheets file and R can have access to that file, which is almost always contains the latest version of my raw data.</p>
+##    psycho  lmerTest  rstanarm    jtools bayesplot  corrplot 
+##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE</code></pre>
+<p>After examining my original work, I noticed that I had uploaded my “Raw Data” as an Excel spreadsheet. This means that unless the project is finished, every time I wanted to add an observation, I needed to replace the existing Excel file with a new one. This process can be improved if I insert the original works into a Google sheets file and R can have access to that file, which almost always contains the latest version of my raw data.</p>
+</div>
 <div id="original-piece-from-my-work" class="section level3">
 <h3>original piece from my work</h3>
 <pre class="r"><code># importing the main excel file from Github repository (mohdasti)
 RAW_data &lt;- rio::import(&#39;https://github.com/mohdasti/Queens-Thesis/blob/master/Raw%20data/RAW_data.xlsx?raw=true&#39;, na=&quot;N/A&quot;)
 #View(RAW_data)</code></pre>
 </div>
-<div id="improved-version-with-access-to-the-google-sheets" class="section level3">
-<h3>improved version with access to the Google Sheets</h3>
-<p>I have been working on this piece of code for a while for another similar project.</p>
-<pre><code>#creating a function that gets the location of the file (e.g., link) and makes sure that the link is publicly readable or not.
+<div id="the-improved-version-with-access-to-the-google-sheets" class="section level3">
+<h3>The improved version with access to the Google Sheets</h3>
+<p>I have been working on this piece of code for a while for another similar project. Here, I try to modify the code to show how it works. The code chunk is annotated.</p>
+<pre><code>
+#creating a function that gets the location of the file (e.g., link) and makes sure that the link is publicly readable or not.
 create_Raw_object &lt;-  function(data_location,
                               pdf_mode = FALSE,
                               sheet_is_publicly_readable = TRUE) {
@@ -294,13 +298,16 @@ create_Raw_object &lt;-  function(data_location,
   
   if(is_google_sheets_location){
     if(sheet_is_publicly_readable){
+    
 # if the original google docs&#39;s sharing settings is set to &quot;anyone with link can view&quot;, then, it should stop/deauthorize
+
       googlesheets4::gs4_deauth()
     }
       
 # if everything is fine, the the following function will run to read the google sheet. For the sake of simplicity, I assign every column as a character, but later, with specific goals, I can assign col_types with correct attributions.
       
-# Here, I imported four columns from that &#39;raw google sheets&#39; and renamed them in my raw spreadsheet in R      
+# Here, I imported four columns from that &#39;raw google sheets&#39; and renamed them in my raw spreadsheet in R  
+
     read_gsheet &lt;- function(sheet_id){
       googlesheets4::read_sheet(data_location, sheet = sheet_id, skip = 1, col_types = &quot;c&quot;)
     }
@@ -329,8 +336,10 @@ Data &lt;- create_data_object(
 </div>
 <div id="ii.-fidelity" class="section level1">
 <h1>II. Fidelity</h1>
-<p>In terms of fidelity and implementing procedures that could reduce the additional manual copy/paste of different version of the data, the code above (using Google Sheets) can increase the fidelity of my work.</p>
-<p>Moreover, I went over my code and found that I used hard-coding to remove some observations.</p>
+<p>In terms of fidelity and implementing procedures that could reduce the additional manual copy/paste of different version of the data, the code above (using Google Sheets) can dramatically increase the fidelity of my work.</p>
+<div id="removing-the-hardcoding" class="section level3">
+<h3>removing the hardcoding</h3>
+<p>Moreover, I went over my code and found that I used hard-coding approach to remove some observations.</p>
 <pre class="r"><code>#after importing the data from GitHub and renaming it RAW
 RAW &lt;- RAW_data
 #creating subsets of data 
@@ -369,6 +378,9 @@ RAW_declr &lt;- RAW[-c(34,39,25,13,46),]</code></pre>
 WAKE_dplyr &lt;- RAW %&gt;% filter(Condition==&#39;WAKE&#39;) %&gt;% filter(abs(scale(GMean)) &lt; 2)
 NAP_SWS_dplyr &lt;- RAW %&gt;% filter(Condition==&#39;NAP&#39;) %&gt;% filter(percentSWS != 0) %&gt;% filter(abs(scale(GMean)) &lt; 2)
 NAP_noSWS_dplyr &lt;- RAW %&gt;% filter(Condition==&#39;NAP&#39;) %&gt;% filter(percentSWS == 0) %&gt;% filter(abs(scale(GMean)) &lt; 2)</code></pre>
+</div>
+<div id="a-simple-plot-of-observations" class="section level3">
+<h3>a simple plot of observations</h3>
 <p>Here, using ggplot package, I will plot the overall distribution</p>
 <pre class="r"><code>#overall pattern of distribution
 NAP_dplyr &lt;- rbind(NAP_SWS_dplyr, NAP_noSWS_dplyr)
@@ -405,10 +417,11 @@ Overall distribution of Geometric Mean scores across the three experimental cond
 </p>
 </div>
 </div>
+</div>
 <div id="iii.-sharingreproduciblity" class="section level1">
 <h1>III. Sharing/Reproduciblity</h1>
-<p>As described in my last assignment, I had posted the origina; raw data in the <a href="https://osf.io/45qx8/">Open Science Framework</a>. Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my <a href="https://github.com/mohdasti/Queens-Thesis">GitHub Repository</a>. You can also access the entire dissertation in <code>thesisaltogether.Rmd</code>.</p>
-<p>The other issue that I briefly mentioned in my workflow critique was the usage of <code>dev</code> packages and how they might reduce the reproducibility. To avoid that, the <code>groundhog</code> package can bring a specific version of a package on a certain date. Below is a sample code chunk of groundhog—in case I needed to retrieve an older version of a package.</p>
+<p>As described in my last assignment, I had posted the original raw data in the <a href="https://osf.io/45qx8/">Open Science Framework</a>. Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my <a href="https://github.com/mohdasti/Queens-Thesis">GitHub Repository</a>. You can also access the entire dissertation in this repository from <code>thesisaltogether.Rmd</code>.</p>
+<p>The other issue that I briefly mentioned in my workflow critique was the usage of <code>dev</code> packages and how they might reduce the reproducibility. To avoid that, the <code>groundhog</code> package can bring a specific version of a package from a certain date. Below is a sample code chunk of groundhog—in case I needed to retrieve an older version of a package.</p>
 <pre class="r"><code># install.packages(&quot;groundhog&quot;)
 # library(groundhog)
 # groundhog.library(&quot;psycho&quot;,&quot;2018-12-26&quot;)</code></pre>

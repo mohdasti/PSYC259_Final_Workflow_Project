@@ -18,6 +18,8 @@ Before starting the assignment, I need to briefly describe the "original files":
 
 ## Automation
 
+### a function to optimize the package installation
+
 In the original work, I inserted this function to reduce the amount of time re-installing/loading the packages.
 
 ```{r, message=FALSE}
@@ -28,12 +30,12 @@ required_packages <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-packages <- c("rio","readxl", "tidyverse","devtools","dplyr","ggplot2","magrittr","Hmisc","psycho","lmerTest","rstanarm","jtools","bayesplot","corrplot", "tidyverse")
+packages <- c("rio","readxl", "tidyverse","devtools","dplyr","ggplot2","magrittr","Hmisc","psycho","lmerTest","rstanarm","jtools","bayesplot","corrplot")
 required_packages(packages)
 ```
 
 
-After examining my initial work, I noticed that I had uploaded my "Raw Data" as an Excel spreadsheet. This means that unless the project is finished, every time I wanted to take a look at my data or running some EDA, I needed to replace the existing Excel file with a new one. This process can be improved if I insert the original works into a Google sheets file and R can have access to that file, which is almost always contains the latest version of my raw data.
+After examining my original work, I noticed that I had uploaded my "Raw Data" as an Excel spreadsheet. This means that unless the project is finished, every time I wanted to add an observation, I needed to replace the existing Excel file with a new one. This process can be improved if I insert the original works into a Google sheets file and R can have access to that file, which almost always contains the latest version of my raw data.
 
 ### original piece from my work
 
@@ -43,13 +45,14 @@ RAW_data <- rio::import('https://github.com/mohdasti/Queens-Thesis/blob/master/R
 #View(RAW_data)
 ```
 
-### improved version with access to the Google Sheets
 
-I have been working on this piece of code for a while for another similar project.
+### The improved version with access to the Google Sheets
 
-
+I have been working on this piece of code for a while for another similar project. Here, I try to modify the code to show how it works. 
+The code chunk is annotated.
 
 ```{}
+
 #creating a function that gets the location of the file (e.g., link) and makes sure that the link is publicly readable or not.
 create_Raw_object <-  function(data_location,
                               pdf_mode = FALSE,
@@ -67,13 +70,16 @@ create_Raw_object <-  function(data_location,
   
   if(is_google_sheets_location){
     if(sheet_is_publicly_readable){
+    
 # if the original google docs's sharing settings is set to "anyone with link can view", then, it should stop/deauthorize
+
       googlesheets4::gs4_deauth()
     }
       
 # if everything is fine, the the following function will run to read the google sheet. For the sake of simplicity, I assign every column as a character, but later, with specific goals, I can assign col_types with correct attributions.
       
-# Here, I imported four columns from that 'raw google sheets' and renamed them in my raw spreadsheet in R      
+# Here, I imported four columns from that 'raw google sheets' and renamed them in my raw spreadsheet in R  
+
     read_gsheet <- function(sheet_id){
       googlesheets4::read_sheet(data_location, sheet = sheet_id, skip = 1, col_types = "c")
     }
@@ -102,9 +108,11 @@ Data <- create_data_object(
 
 # II. Fidelity
 
-In terms of fidelity and implementing procedures that could reduce the additional manual copy/paste of different version of the data, the code above (using Google Sheets) can increase the fidelity of my work. 
+In terms of fidelity and implementing procedures that could reduce the additional manual copy/paste of different version of the data, the code above (using Google Sheets) can dramatically increase the fidelity of my work. 
 
-Moreover, I went over my code and found that I used hard-coding to remove some observations.
+### removing the hardcoding 
+
+Moreover, I went over my code and found that I used hard-coding approach to remove some observations.
 
 ```{r, include=TRUE, message=FALSE, cache=TRUE}
 #after importing the data from GitHub and renaming it RAW
@@ -155,6 +163,8 @@ NAP_noSWS_dplyr <- RAW %>% filter(Condition=='NAP') %>% filter(percentSWS == 0) 
 ```
 
 
+### a simple plot of observations
+
 Here, using ggplot package, I will plot the overall distribution
 
 ``` {r, include = TRUE, cache=TRUE, message=FALSE}
@@ -196,9 +206,9 @@ ggplot(df_GMean, aes(x = Condition, y = GeometricMean, color = Condition)) +
 
 # III. Sharing/Reproduciblity
 
-As described in my last assignment, I had posted the origina; raw data in the [Open Science Framework](https://osf.io/45qx8/). Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my [GitHub Repository](https://github.com/mohdasti/Queens-Thesis). You can also access the entire dissertation in `thesisaltogether.Rmd`. 
+As described in my last assignment, I had posted the original raw data in the [Open Science Framework](https://osf.io/45qx8/). Plus, I wrote the whole dissertation in RMarkdown and uploaded that in my [GitHub Repository](https://github.com/mohdasti/Queens-Thesis). You can also access the entire dissertation in this repository from  `thesisaltogether.Rmd`. 
 
-The other issue that I briefly mentioned in my workflow critique was the usage of `dev` packages and how they might reduce the reproducibility. To avoid that, the `groundhog` package can bring a specific version of a package on a certain date. 
+The other issue that I briefly mentioned in my workflow critique was the usage of `dev` packages and how they might reduce the reproducibility. To avoid that, the `groundhog` package can bring a specific version of a package from a certain date. 
 Below is a sample code chunk of groundhog—in case I needed to retrieve an older version of a package.
 
 ```{r, include=TRUE, cache=TRUE}
